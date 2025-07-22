@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+html {
+  color-scheme: dark;
+  font-family: "Roboto", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: normal;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+
+
+}
+
+body {
+  background-color: #030718;
+}

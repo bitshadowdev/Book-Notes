@@ -83,7 +83,6 @@ function YourNotes({ notes, onEditNote, onDeleteNote, onOpenEditor }: YourNotesP
     });
 
     const editingNoteId = document.elementFromPoint(clickX, clickY)?.getAttribute('data-testid');
-    console.log(document.elementFromPoint(clickX, clickY))
     if (editingNoteId) {
       useGlobalStore.setState({ editingdNoteId: Number(editingNoteId) })
     }

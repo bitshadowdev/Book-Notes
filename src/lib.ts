@@ -33,7 +33,6 @@ export const useInitApplication = () => {
 
 export const handleAddNewNoteSubmit: SubmitHandler<ModalNewNoteInputs> = async (data: ModalNewNoteInputs, event: React.FormEvent) => {
     event.preventDefault();
-    console.log(data);
     
     const note: Note = {
       title: data.bookTitle,
@@ -87,10 +86,8 @@ type handleEditorSignature = {
 }
 
 export const handleOpenEditor = async ({ index }: handleEditorSignature) => {
-  console.log(index)
   const selectedNoteId = index !== undefined ? index : useGlobalStore.getState().editingdNoteId;
   const editingNote = useGlobalStore.getState().notes[selectedNoteId]
-  console.log(selectedNoteId)
   
   useGlobalStore.setState({ isOnEditMode: true });
   useGlobalStore.setState({ selectedNote: editingNote });

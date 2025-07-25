@@ -1,7 +1,7 @@
 import React from 'react'
 import useGlobalStore from '../stores/globalStore'
 import { useForm } from 'react-hook-form'
-import { type ModalNewNoteInputs as Inputs, type ModalNewNoteInputs, type Note } from '../types'
+import type { ModalNewNoteInputs as Inputs, ModalNewNoteInputs, Note } from '../types'
 
 
 type ModalButtonProps = {
@@ -26,15 +26,15 @@ function ModalContainer({children}: {children: React.ReactNode, open?: boolean})
   )
 }
 
-function ModalHeader({children}: {children: React.ReactNode}) {
+export function ModalHeader({children}: {children: React.ReactNode}) {
   const setterModal = useGlobalStore((state) => state.setCreateNoteModalOpen)
   const closeModal = () => {
     setterModal(false)
   }
   return (
     <div id="modalHeader" className='p-4 border-b-2 border-gray-700 flex justify-between'>
-      <h2>{children}</h2>
-      <button className='hover:text-blue-800' onClick={closeModal}>[ X ]</button>
+      <h2 data-testid="header-modal">{children}</h2>
+      <button className='hover:text-blue-800' onClick={closeModal} data-testid="close-button">[ X ]</button>
     </div>
   )
 }
@@ -49,7 +49,7 @@ function ModalFormContainer({ children }: { children: React.ReactNode }) {
 
 function ModalFooter({ children }: { children: React.ReactNode }) {
   return (
-    <div id="modalFooter" className='p-4 flex gap-4 justify-end'>
+    <div id="modalFooter" data-testid='modal-footer' className='p-4 flex gap-4 justify-end'>
       {children}
     </div>
   )
@@ -62,7 +62,7 @@ function ModalButton({ children, variant, component, onClick } : ModalButtonProp
   const color = variant === 'primary' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 hover:bg-gray-700'
   if (component === 'input') return <input value={children as string} type='submit' className={"p-2 rounded-md " + color} />
   if (component === 'button') return (
-    <button className={"p-2 rounded-md " + color} onClick={onClick}>
+    <button data-testid='modal-button' className={"p-2 rounded-md " + color} onClick={onClick}>
       {children}
     </button>
   )

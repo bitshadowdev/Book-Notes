@@ -44,8 +44,15 @@ type useEditorReturn = {
   content: CodeBlock[] | undefined; 
   code: string;
   setCode: React.Dispatch<React.SetStateAction<string>>;
-  handleAltEnter: () => true | undefined;
+  handleAltEnter: (event: React.KeyboardEvent) => true | undefined;
   handleDeleteBlock: (blockIndexToDelete: number) => void;
+  contextMenuRef: React.Ref<HTMLElement | null>;
+  onContextClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;
+  mouseElementId: number;
+  setMouseElementId: React.Dispatch<React.SetStateAction<number>>;
+  contextClickOverride: (e: React.MouseEvent<HTMLDivElement>) => void;
+  handleCopyToClipboard: () => void;
+  editMetadata: () => void;
 }
 
 

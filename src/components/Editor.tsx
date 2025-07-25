@@ -6,11 +6,10 @@ import ReactMarkdown from 'react-markdown'
 import Highlighter from 'react-syntax-highlighter';
 import { gruvboxDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import remarkGfm from 'remark-gfm';
-import { handleCloseEditor, makeContextDriver } from '../lib';
-import { useEditor, useMarkdownRenderer } from '../hooks';
+import { handleCloseEditor,  } from '../lib';
+import { useEditableTD, useEditor, useMarkdownRenderer } from '../hooks';
 import ContextMenu, { ContextMenuButton } from './ContextMenu';
-import { useRef, useState, type PropsWithChildren } from 'react';
-import type { NoteDetails } from '../types';
+import type { Note, NoteDetails } from '../types';
 import useGlobalStore from '../stores/globalStore';
 import { getCollection, updateItemInCollection } from '../stores/database';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,7 +28,7 @@ type MarkdownRederedProps = {
   setMouseElementId: (id: number ) => void;
 }
 
-function MarkdownRendered({ id, children, onDelete, onContextClick, setMouseElementId }: MarkdownRederedProps) {
+export function MarkdownRendered({ id, children, onDelete, onContextClick, setMouseElementId }: MarkdownRederedProps) {
 
   const {
     grouphHovered,
@@ -43,7 +42,8 @@ function MarkdownRendered({ id, children, onDelete, onContextClick, setMouseElem
   } = useMarkdownRenderer(id, children);
 
   return(
-    <div onMouseDown={() => setMouseElementId(id)} onMouseOut={() => setMouseElementId(-1)} onContextMenu={onContextClick} onDoubleClick={() => setEditingMode()} title="Doble click para editar" onMouseEnter={() => setGrouphHovered({visibility: 'visible'})} onMouseLeave={() => setGrouphHovered({visibility: 'hidden'})} id="mdBlock" className='group border-2 border-gray-800 rounded-md p-4 my-4'  >
+    <div data-testid='editorBlock-container' onMouseDown={() => setMouseElementId(id)} onMouseOut={() => setMouseElementId(-1)} 
+      onContextMenu={onContextClick} onDoubleClick={() => setEditingMode()} title="Doble click para editar" onMouseEnter={() => setGrouphHovered({visibility: 'visible'})} onMouseLeave={() => setGrouphHovered({visibility: 'hidden'})} id="mdBlock" className='group border-2 border-gray-800 rounded-md p-4 my-4'  >
       <div id="editor" className='border-b border-b-gray-800 pb-4'>
         { (!isOnEditing)?  <ReactMarkdown
           remarkPlugins={[remarkGfm]}
@@ -75,20 +75,22 @@ function MarkdownRendered({ id, children, onDelete, onContextClick, setMouseElem
           onChange={(value) => {setCode(value)}}
           onKeyDown={handleEnterEdition}
         />
-        <p className='text-xs text-gray-400'> (<small>Presione <kbd>Alt</kbd>+<kbd>Enter</kbd> para dejar de editar este bloque.</small>)</p>  
+        <p className='text-xs text-gray-400'
+          data-testid="editing-instruction"
+        > (<small>Presione <kbd>Alt</kbd>+<kbd>Enter</kbd> para dejar de editar este bloque.</small>)</p>  
       </div>}
       </div>
       
       <div id="blockActions" style={grouphHovered} className='w-full flex justify-end pt-4'>
-        <button onClick={() => onDelete(id)} className='rounded-sm text-gray-400 hover:text-red-400 text-xs mr-2' title="Borrar">Borrar</button>
+        <button data-testid="delete-button" onClick={() => onDelete(id)} className='rounded-sm text-gray-400 hover:text-red-400 text-xs mr-2' title="Borrar">Borrar</button>
         |
-        <button onClick={() => setEditingMode()} className='rounded-sm text-gray-400 hover:text-blue-400 text-xs ml-2' title="Editar">Editar</button>
+        <button data-testid="edit-button" onClick={() => setEditingMode()} className='rounded-sm text-gray-400 hover:text-blue-400 text-xs ml-2' title="Editar">Editar</button>
       </div>
     </div>
   ) 
 }
 
-function MarkdownBlock( {code, setCode}: EditorBlockProps ) {
+export function MarkdownBlock( {code, setCode}: EditorBlockProps ) {
   const extensions = [
     markdown({ base: markdownLanguage, codeLanguages: languages })
   ]
@@ -98,17 +100,23 @@ function MarkdownBlock( {code, setCode}: EditorBlockProps ) {
         <CodeMirror value={code} height='100%' theme={vscodeDark} 
           extensions={extensions}
           onChange={(value) => {setCode(value)}}
+          
         />
-        <p className='text-xs text-gray-400'> (<small>Presione <kbd>Alt</kbd>+<kbd>Enter</kbd> para insertar el bloque.</small>)</p>
+        <p data-testid='markdown-instructions' className='text-xs text-gray-400'> (<small>Presione <kbd>Alt</kbd>+<kbd>Enter</kbd> para insertar el bloque.</small>)</p>
     </div>
   )
 }
 
 
-function EditableTD({ children, setter }: PropsWithChildren<{ setter: (value: string) => void }>) {
-  const [isEditable, setIsEditable] = useState(false);
-  const [inputValue, setInputValue] = useState(children as string);
-  const inputRef = useRef<HTMLInputElement>(null);
+export function EditableTD({ children, setter }: PropsWithChildren<{ setter: (value: string) => void }>) {
+  const {
+    isEditable,
+    setIsEditable,
+    inputValue,
+    setInputValue,
+    inputRef
+  } = useEditableTD(children as string)
+
   return (
    <>
     {isEditable ? (
@@ -116,6 +124,7 @@ function EditableTD({ children, setter }: PropsWithChildren<{ setter: (value: st
         ref={inputRef}
         type="text"
         value={inputValue}
+        data-testId='td-input'
         onKeyUp={(e) => {
           if (e.key === 'Escape') {
             setIsEditable(false);
@@ -145,6 +154,7 @@ function EditableTD({ children, setter }: PropsWithChildren<{ setter: (value: st
           }, 0);
         }}
         className="cursor-pointer text-gray-200 hover:text-blue-400"
+        data-testId="editable-toggler"
       >
         {children ? children : <span className='text-gray-500 hover:underline' title="Haga click para editar">No hay información</span>}
       </span>
@@ -152,7 +162,7 @@ function EditableTD({ children, setter }: PropsWithChildren<{ setter: (value: st
    </>
     
   )}
-function MetadataBlock({ noteDetails }: { noteDetails: NoteDetails, visible: boolean, setVisible: (state: boolean) => void }) {
+function MetadataBlock({ noteDetails }: { noteDetails: NoteDetails | undefined, visible: boolean, setVisible: (state: boolean) => void }) {
   const makeSetter = (key: keyof NoteDetails) => (value: string) => {
     /* Update current note */
     const currentNote = useGlobalStore.getState().selectedNote;
@@ -173,7 +183,7 @@ function MetadataBlock({ noteDetails }: { noteDetails: NoteDetails, visible: boo
         exit={{ y: -20, opacity: 0, height: 0 }}
         transition={{ duration: 0.5, ease: 'easeInOut' }}
       >
-        <div id="title" className='flex justify-between '>
+        <div id="title" className='flex justify-between' data-testid="metadata-root">
           <h2 className='text-lg font-semibold'>Metadatos</h2>
           <button 
             className='text-gray-500 font-bold hover:text-gray-300'
@@ -237,12 +247,13 @@ function MetadataBlock({ noteDetails }: { noteDetails: NoteDetails, visible: boo
   )
 }
 
-function EditorBlock( {code, setCode }: EditorBlockProps ) {
+function EditorBlock( { code, setCode }: EditorBlockProps ) {
   
   return (
       <div id="block" className='border-2 border-gray-800  rounded-md ' >
+        {/*
         <div id="form-control" className='flex gap-4 pb-2 px-4' >
-          {/* 
+ 
           <div id="blockTypeSelectGroup" className='block'>
             <label htmlFor="blockType" className='text-xs'>Tipo de bloque</label>
             <select 
@@ -252,10 +263,10 @@ function EditorBlock( {code, setCode }: EditorBlockProps ) {
               <option value="metadata">Metadatos</option>
             </select>
           </div>
-          */}
 
 
         </div>
+        */}
 
         <div id="blockContent" className='p-4'>
            <MarkdownBlock code={code} setCode={setCode} /> 
@@ -279,6 +290,46 @@ function RenderedCellContextMenu({ref, children}: PropsWithChildren<CellContextP
   )
 }
 
+type EditorHeader = {
+  editMetadata: () => void;
+  handleCloseEditor: (e: React.MouseEvent<HTMLElement>) => void;
+  currentNote: Note | nulll;
+}
+
+function EditorHeader({editMetadata, handleCloseEditor, currentNote}: EditorHeader ) {
+  return (
+    <section id="editorHeader" className='flex gap-4 align-baseline justify-between p-4 border-b-2 border-gray-900'>
+      <div id="title" className='flex gap-2'>
+        <button className='text-gray-500 font-bold hover:bg-gray-700 px-2 rounded-sm'
+          onClick={handleCloseEditor}
+          data-testid="back-button"
+        >&lt;</button>
+        <h1 className='text-xl' data-testid='editor-header'><span id='icon'>📃</span>{currentNote?.title}</h1>
+        <small className='text-gray-500' data-testid='editor-small'>(editando)</small>
+      </div>
+
+      <div id="options" className='px-10'>
+        <button className='text-gray-500 font-bold hover:text-gray-300'
+          data-testid="edit-metadata"
+          onClick={editMetadata}>Editar metadatos</button>
+
+      </div>
+    </section>
+  );
+}
+
+function EditorActions({ currentNote }: {currentNote: Note | undefined | null }) {
+  return (
+    <section data-testid="editor-actions" id="editorActions" className=''>
+      {useGlobalStore.getState().isMetadataBlockVisible}
+      <AnimatePresence>  
+        {useGlobalStore.getState().isMetadataBlockVisible ? <MetadataBlock noteDetails={currentNote?.details}
+        />: null}
+      </AnimatePresence>
+    </section>
+  )
+}
+
 function Editor() {
   const {
     currentNote,
@@ -286,73 +337,23 @@ function Editor() {
     code,
     setCode,
     handleAltEnter,
-    handleDeleteBlock
+    handleDeleteBlock,
+    contextMenuRef,
+    setMouseElementId,
+    contextClickOverride,
+    handleCopyToClipboard,
+    editMetadata
   } = useEditor();
 
-  const contextMenuRef = useRef(null);
 
-  const onContextClick = makeContextDriver(contextMenuRef);
-
-  // Tracking
-  const [mouseElementId, setMouseElementId] = useState<number>(-1);
-
-  const contextClickOverride = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (mouseElementId !== -1) {
-      onContextClick(event);
-      useGlobalStore.setState({ editorSelection: [mouseElementId] });
-    }
-    else return;
-  }
-
-  const handleCopyToClipboard = () => {
-    const editorSelection = useGlobalStore.getState().editorSelection;
-    if (editorSelection.length === 0) {
-      console.warn('No hay selección en el editor.');
-      return;
-    }
-
-    if (editorSelection.length > 0) {
-      let contentToCopy = '';
-      editorSelection.forEach((id) => {
-        const block = content[id];
-        if (block && block.type === 'markdown') {
-          contentToCopy += block.content + '\n\n';
-        }
-      })
-
-      navigator.clipboard.writeText(contentToCopy).then(() => {
-        console.log('Contenido copiado al portapapeles.');
-      }).catch((err) => {
-        console.error('Error al copiar al portapapeles: ', err);
-      });
-    
-    }
-  }
   
   return (
-    <div className='col-span-10 w-full min-h-auto' onKeyDown={(event) => (event.altKey && event.key === 'Enter' && handleAltEnter() && setCode(''))}>
-      <section id="editorHeader" className='flex gap-4 align-baseline justify-between p-4 border-b-2 border-gray-900'>
-        <div id="title" className='flex gap-2'>
-          <button className='text-gray-500 font-bold hover:bg-gray-700 px-2 rounded-sm'
-            onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleCloseEditor(e)}
-          >&lt;</button>
-          <h1 className='text-xl'><span id='icon'>📃</span>{currentNote?.title}</h1>
-          <small className='text-gray-500'>(editando)</small>
-        </div>
-
-        <div id="options" className='px-10'>
-          <button className='text-gray-500 font-bold hover:text-gray-300'
-            onClick={() => useGlobalStore.setState({isMetadataBlockVisible: !useGlobalStore.getState().isMetadataBlockVisible })}>Editar metadatos</button>
-
-        </div>
-      </section>
-      <section id="editorActions" className=''>
-        <AnimatePresence>  
-          {useGlobalStore.getState().isMetadataBlockVisible ? <MetadataBlock noteDetails={currentNote?.details}
-          />: null}
-        </AnimatePresence>
-
-      </section>
+    <div data-testid='general-container' className='col-span-10 w-full min-h-auto' onKeyDown={handleAltEnter}>
+      <EditorHeader
+        currentNote={currentNote}
+        editMetadata={editMetadata}
+        handleCloseEditor={handleCloseEditor} />
+        <EditorActions currentNote={currentNote} />
       <section id="editor" className='p-8'>
         {
           content?.map((item, index) => {

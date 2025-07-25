@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import {type Note } from '../types'
+import type { Note } from '../types';
 
 
 interface GlobalState {

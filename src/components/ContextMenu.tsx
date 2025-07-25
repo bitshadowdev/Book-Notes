@@ -7,7 +7,7 @@ type CtxMenuButtonProps = {
 }
 
 type ContextMenu = {
-  ref: React.RefObject<HTMLElement | null>;
+  ref?: React.RefObject<HTMLElement | null>;
   
 }
 
@@ -20,6 +20,7 @@ export function ContextMenuButton({ children, onClick, style }: PropsWithChildre
       onClick={onClick}
       className={s}
       id="context-menu"
+      data-testid="context-menu-button"
     >
       {children}
     </li>
@@ -35,12 +36,15 @@ function ContextMenu({ref, children}: PropsWithChildren<ContextMenu>) {
             className='bg-gray-800 border-2 border-gray-700 rounded-md p-4 w-[20%] absolute top-0 left-0 cursor-pointer'
             ref={ref}
             style={{visibility: contextMenuVisibility ? 'visible' : 'hidden'}}
+            data-testid="context-menu"
           >
-            <ul id="menu-options">
+            <ul id="menu-options" data-testid="context-menu-options">
               { children }
             </ul>
           </section>
   )
 }
+
+ContextMenu.Button = ContextMenuButton;
 
 export default ContextMenu;

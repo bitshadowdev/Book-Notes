@@ -1,14 +1,5 @@
 import React from 'react'
-
-type Props = {
-  mainLine: string;
-  seccondLine: string;
-}
-
-type NotesContainerProps = {
-  children: React.ReactNode;
-  icon?: React.ReactNode;
-}
+import type { NoNotesContainerProps, NoNotesProps } from '../types'
 
 function DefaultIcon() {
   return (
@@ -31,7 +22,7 @@ function NoNotesSubHeader({ children }: { children: React.ReactNode }) {
   )
 }
 
-function NoNotesContainer({ children, icon }: NotesContainerProps) {
+function NoNotesContainer({ children, icon }: NoNotesContainerProps) {
   return (
     <div className="col-span-10 w-full h-full flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-950 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
       <div className="text-center">
@@ -42,7 +33,7 @@ function NoNotesContainer({ children, icon }: NotesContainerProps) {
   )
 }
 
-function NoNotesDefault({ mainLine, seccondLine }: Props) {
+function NoNotesDefault({ mainLine, seccondLine }: NoNotesProps) {
   return (
     <NoNotesContainer>
       <NoNotesHeader>{mainLine}</NoNotesHeader>

@@ -1,4 +1,4 @@
-import React, { use } from 'react'
+import React from 'react'
 import useGlobalStore from '../stores/globalStore'
 import { useForm } from 'react-hook-form'
 import { type ModalNewNoteInputs as Inputs, type ModalNewNoteInputs, type Note } from '../types'
@@ -14,8 +14,8 @@ type ModalButtonProps = {
 
 type ModalProps = {
   onCancel?: () => void;
-  onEdit?: (data: ModalNewNoteInputs, event: React.FormEvent<HTMLFormElement>) => void;
-  onSubmit: (data: ModalNewNoteInputs, event: React.FormEvent<HTMLFormElement>) => void;
+  onEdit?: (data: ModalNewNoteInputs, event?: React.BaseSyntheticEvent) => void;
+  onSubmit: (data: ModalNewNoteInputs, event?: React.BaseSyntheticEvent) => void;
 }
 
 function ModalContainer({children}: {children: React.ReactNode, open?: boolean}) {
@@ -81,7 +81,9 @@ function DefaultNewNoteModal({ onCancel, onSubmit, onEdit }: ModalProps) {
     note = allNotes[editingNoteId];
   }
 
-  const formHandler = newNoteModalEditMode ? onEdit : onSubmit
+  const formHandler = newNoteModalEditMode
+    ? (onEdit ?? (() => {}))
+    : onSubmit;
   
   return (
     <ModalContainer open={createNoteModalOpen}>

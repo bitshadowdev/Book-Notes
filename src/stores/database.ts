@@ -22,11 +22,8 @@ export function existCollection(name: string) {
 
 export function appendItemToCollection<Type>(name: string, item: Type): void {
   // Get rid of the {} elements 
-  
   const collection = getCollection<Type[]>(name) as Type[]
-  if (collection.length === 1) {
-    collection.pop()
-  } 
+
   collection.push(item)
   localStorage.setItem(name, JSON.stringify(collection))
 }

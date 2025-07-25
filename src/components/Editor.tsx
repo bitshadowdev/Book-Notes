@@ -1,137 +1,368 @@
-import useGlobalStore from '../stores/globalStore'
-import CodeMirror, from '@uiw/react-codemirror'
-import { vscodeDark } from '@uiw/codemirror-theme-vscode'
+import CodeMirror from '@uiw/react-codemirror';
+import { vscodeDark } from '@uiw/codemirror-theme-vscode';
 import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 import { languages } from '@codemirror/language-data';
-import { useState } from 'react';
-import { getCollection, updateItemInCollection } from '../stores/database';
 import ReactMarkdown from 'react-markdown'
-import { type Note } from '../types';
-import Highlighter from 'react-syntax-highlighter'
+import Highlighter from 'react-syntax-highlighter';
 import { gruvboxDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import remarkGfm from 'remark-gfm';
+import { handleCloseEditor, makeContextDriver } from '../lib';
+import { useEditor, useMarkdownRenderer } from '../hooks';
+import ContextMenu, { ContextMenuButton } from './ContextMenu';
+import { useRef, useState, type PropsWithChildren } from 'react';
+import type { NoteDetails } from '../types';
+import useGlobalStore from '../stores/globalStore';
+import { getCollection, updateItemInCollection } from '../stores/database';
+import { motion, AnimatePresence } from 'framer-motion';
 
-
-type EditorBlockOnEditMode = {
-  content: string;
-
-}
 
 type EditorBlockProps = {
   setCode: (value: string) => void;
   code: string;
 }
 
-function MarkdownRendered({ id, children, onDelete }: {   id: number, children: string, onDelete: (blockIndex: number) => void }) {
-  const [grouphHovered, setGrouphHovered] = useState({visibility: 'hidden'});
+type MarkdownRederedProps = {
+  id: number;
+  children: string;
+  onDelete: (id: number) => void;
+  onContextClick: (e: React.MouseEvent<HTMLDivElement>) => void;
+  setMouseElementId: (id: number ) => void;
+}
+
+function MarkdownRendered({ id, children, onDelete, onContextClick, setMouseElementId }: MarkdownRederedProps) {
+
+  const {
+    grouphHovered,
+    setGrouphHovered,
+    isOnEditing,
+    code,
+    setCode,
+    handleEnterEdition,
+    extensions,
+    setEditingMode
+  } = useMarkdownRenderer(id, children);
+
   return(
-    <div title="Doble click para editar" onMouseEnter={() => setGrouphHovered({visibility: 'visible'})} onMouseLeave={() => setGrouphHovered({visibility: 'hidden'})} id="mdBlock" className='group border-2 border-gray-800 rounded-md p-4 my-4' >
+    <div onMouseDown={() => setMouseElementId(id)} onMouseOut={() => setMouseElementId(-1)} onContextMenu={onContextClick} onDoubleClick={() => setEditingMode()} title="Doble click para editar" onMouseEnter={() => setGrouphHovered({visibility: 'visible'})} onMouseLeave={() => setGrouphHovered({visibility: 'hidden'})} id="mdBlock" className='group border-2 border-gray-800 rounded-md p-4 my-4'  >
       <div id="editor" className='border-b border-b-gray-800 pb-4'>
-    <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
-      components={{
-        code({ node, inline, className, children, ...props }) {
-          const match = /language-(\w+)/.exec(className || '');
-          return !inline && match ? (
-            <Highlighter
-              language={match[1]}
-              PreTag="div" // O el tag que prefieras
-              style={gruvboxDark}
-              {...props}
-            >
-              {String(children).replace(/\n$/, '')}
-            </Highlighter>
-          ) : (
-            <code className={className} {...props}>
-              {children}
-            </code>
-          );
-        },
-      }}
-    >
-      {children}
-    </ReactMarkdown>
+        { (!isOnEditing)?  <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            code({ node, inline, className, children, ...props }) {
+              const match = /language-(\w+)/.exec(className || '');
+              return !inline && match ? (
+                <Highlighter
+                  language={match[1]}
+                  PreTag="div" // O el tag que prefieras
+                  style={gruvboxDark}
+                  {...props}
+                >
+                  {String(children).replace(/\n$/, '')}
+                </Highlighter>
+              ) : (
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              );
+            },
+          }}
+        >
+          {children}
+        </ReactMarkdown> : 
+      <div> 
+        <CodeMirror value={code} height='100%' theme={vscodeDark} 
+          extensions={extensions}
+          onChange={(value) => {setCode(value)}}
+          onKeyDown={handleEnterEdition}
+        />
+        <p className='text-xs text-gray-400'> (<small>Presione <kbd>Alt</kbd>+<kbd>Enter</kbd> para dejar de editar este bloque.</small>)</p>  
+      </div>}
       </div>
       
       <div id="blockActions" style={grouphHovered} className='w-full flex justify-end pt-4'>
         <button onClick={() => onDelete(id)} className='rounded-sm text-gray-400 hover:text-red-400 text-xs mr-2' title="Borrar">Borrar</button>
         |
-        <button onClick={() => {}} className='rounded-sm text-gray-400 hover:text-blue-400 text-xs ml-2' title="Editar">Editar</button>
+        <button onClick={() => setEditingMode()} className='rounded-sm text-gray-400 hover:text-blue-400 text-xs ml-2' title="Editar">Editar</button>
       </div>
     </div>
   ) 
 }
 
-function EditorBlock( {code, setCode}: EditorBlockProps ) {
-
+function MarkdownBlock( {code, setCode}: EditorBlockProps ) {
   const extensions = [
     markdown({ base: markdownLanguage, codeLanguages: languages })
   ]
 
   return (
-      <div id="block" className='border-2 border-gray-800 h-15 rounded-md ' >
+    <div>
         <CodeMirror value={code} height='100%' theme={vscodeDark} 
           extensions={extensions}
-          onChange={(value, _) => {setCode(value)}}
+          onChange={(value) => {setCode(value)}}
         />
-        <p className='text-xs text-gray-400'> (<small>Presione <kbd>Shift</kbd>+<kbd>Enter</kbd> para insertar el bloque.</small>)</p>
+        <p className='text-xs text-gray-400'> (<small>Presione <kbd>Alt</kbd>+<kbd>Enter</kbd> para insertar el bloque.</small>)</p>
+    </div>
+  )
+}
+
+
+function EditableTD({ children, setter }: PropsWithChildren<{ setter: (value: string) => void }>) {
+  const [isEditable, setIsEditable] = useState(false);
+  const [inputValue, setInputValue] = useState(children as string);
+  const inputRef = useRef<HTMLInputElement>(null);
+  return (
+   <>
+    {isEditable ? (
+      <input
+        ref={inputRef}
+        type="text"
+        value={inputValue}
+        onKeyUp={(e) => {
+          if (e.key === 'Escape') {
+            setIsEditable(false);
+            setInputValue(children as string);
+          }
+        }}
+        onChange={(e) => {
+          setInputValue(e.target.value);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            setIsEditable(false);
+            setter(inputValue);
+          }
+        }}
+
+        onBlur={() => {setIsEditable(false); setter(inputValue)}}
+        className="w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm"
+      />
+    ) : (
+      <span
+        onClick={() => {
+          setIsEditable(true)
+          // focus the input
+          setTimeout(() => {
+            inputRef.current?.focus();
+          }, 0);
+        }}
+        className="cursor-pointer text-gray-200 hover:text-blue-400"
+      >
+        {children ? children : <span className='text-gray-500 hover:underline' title="Haga click para editar">No hay información</span>}
+      </span>
+    )}
+   </>
+    
+  )}
+function MetadataBlock({ noteDetails }: { noteDetails: NoteDetails, visible: boolean, setVisible: (state: boolean) => void }) {
+  const makeSetter = (key: keyof NoteDetails) => (value: string) => {
+    /* Update current note */
+    const currentNote = useGlobalStore.getState().selectedNote;
+    if (currentNote) {
+      currentNote.details[key] = value;
+      updateItemInCollection('notes', useGlobalStore.getState().editingdNoteId, currentNote);
+      useGlobalStore.setState({ notes: getCollection('notes') });
+      useGlobalStore.setState({ selectedNote: currentNote });
+    }
+  }
+
+  return (
+      
+      <motion.div  
+        className={`border-l-2 border-b-2 border-r-2 border-gray-800 p-4 px-12 shadow-inner shadow-black`} 
+        initial={{ y: -20, opacity: 0, height: 0 }}
+        animate={{ y: 0, opacity: 1, height: 'auto' }}
+        exit={{ y: -20, opacity: 0, height: 0 }}
+        transition={{ duration: 0.5, ease: 'easeInOut' }}
+      >
+        <div id="title" className='flex justify-between '>
+          <h2 className='text-lg font-semibold'>Metadatos</h2>
+          <button 
+            className='text-gray-500 font-bold hover:text-gray-300'
+            onClick={() => {useGlobalStore.setState({isMetadataBlockVisible: false})}}>[ X ]</button>
+        </div>
+        <p className='text-sm text-gray-500'>Aquí puedes agregar metadatos relacionados con el libro (Solo puede haber un bloque de metadatos por nota).</p>
+
+
+        <table className='w-full mt-4'>
+          <thead>
+            <tr>
+              <th className='text-left'>Metadato</th>
+              <th className='text-left'>Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Fecha de publicación</td>
+              <td>
+                <EditableTD setter={(value) => makeSetter('publicationDate')(value)}>
+                  {noteDetails.publicationDate}
+                </EditableTD>
+              </td>
+            </tr>
+            <tr>
+              <td>Género</td>
+              <td>
+                <EditableTD setter={(value) => makeSetter('genre')(value)}>
+                  {noteDetails.genre}
+                </EditableTD>
+              </td>
+            </tr>
+            <tr>
+              <td>ISBN</td>
+              <td>
+                <EditableTD setter={(value) => makeSetter('isbn')(value)}>
+                  {noteDetails.isbn}
+                </EditableTD>
+              </td>
+            </tr>
+            <tr>
+              <td>Editorial</td>
+              <td>
+                <EditableTD setter={(value) => makeSetter('publisher')(value)}>
+                  {noteDetails.publisher}
+                </EditableTD>
+              </td>
+            </tr>
+            <tr>
+              <td>Número de páginas</td>
+              <td>
+                <EditableTD setter={(value) => makeSetter('pageNumber')(value)}>
+                  {noteDetails.pageNumber}
+                </EditableTD>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+      </motion.div>
+  )
+}
+
+function EditorBlock( {code, setCode }: EditorBlockProps ) {
+  
+  return (
+      <div id="block" className='border-2 border-gray-800  rounded-md ' >
+        <div id="form-control" className='flex gap-4 pb-2 px-4' >
+          {/* 
+          <div id="blockTypeSelectGroup" className='block'>
+            <label htmlFor="blockType" className='text-xs'>Tipo de bloque</label>
+            <select 
+            onChange={(e) => setSelectedBlockType(e.target.value as 'md' | 'metadata')}
+            name="blockType" id="blockType" className='w-full bg-gray-800 text-gray-200 border border-gray-700 rounded-md p-2 text-sm'>
+              <option value="md" selected>Markdown</option>
+              <option value="metadata">Metadatos</option>
+            </select>
+          </div>
+          */}
+
+
+        </div>
+
+        <div id="blockContent" className='p-4'>
+           <MarkdownBlock code={code} setCode={setCode} /> 
+        </div>
+        
+
+      
       </div>
   )
 }
 
+type CellContextProps = {
+  ref: React.RefObject<HTMLElement | null>;
+}
+
+function RenderedCellContextMenu({ref, children}: PropsWithChildren<CellContextProps>) {
+  return (
+    <ContextMenu ref={ref}>
+      {children}
+    </ContextMenu>
+  )
+}
+
 function Editor() {
-  const currentNote = useGlobalStore((state) => state.selectedNote)
-  const content = useGlobalStore((state) => state.selectedNote?.content)
-  const [code, setCode] = useState('')
-  const { selectedNote, editingdNoteId, setSelectedNote } = useGlobalStore();
+  const {
+    currentNote,
+    content,
+    code,
+    setCode,
+    handleAltEnter,
+    handleDeleteBlock
+  } = useEditor();
 
-  const handleAltEnter = () => {
-    const noteId = useGlobalStore.getState().editingdNoteId;
-    const currentNote = useGlobalStore.getState().notes[noteId];
-    currentNote.content.push({
-      type: 'markdown',
-      content: code
-    });
+  const contextMenuRef = useRef(null);
 
+  const onContextClick = makeContextDriver(contextMenuRef);
+
+  // Tracking
+  const [mouseElementId, setMouseElementId] = useState<number>(-1);
+
+  const contextClickOverride = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (mouseElementId !== -1) {
+      onContextClick(event);
+      useGlobalStore.setState({ editorSelection: [mouseElementId] });
+    }
+    else return;
+  }
+
+  const handleCopyToClipboard = () => {
+    const editorSelection = useGlobalStore.getState().editorSelection;
+    if (editorSelection.length === 0) {
+      console.warn('No hay selección en el editor.');
+      return;
+    }
+
+    if (editorSelection.length > 0) {
+      let contentToCopy = '';
+      editorSelection.forEach((id) => {
+        const block = content[id];
+        if (block && block.type === 'markdown') {
+          contentToCopy += block.content + '\n\n';
+        }
+      })
+
+      navigator.clipboard.writeText(contentToCopy).then(() => {
+        console.log('Contenido copiado al portapapeles.');
+      }).catch((err) => {
+        console.error('Error al copiar al portapapeles: ', err);
+      });
     
-    updateItemInCollection('notes', noteId, currentNote);
-    useGlobalStore.setState({notes: [...useGlobalStore.getState().notes], selectedNote: useGlobalStore.getState().notes[noteId]})
-    return true;
+    }
   }
   
-  const handleDeleteBlock = (blockIndexToDelete: number) => {
-    if (editingdNoteId === undefined || !selectedNote) return; // Seguridad
-
-    const noteId = editingdNoteId;
-
-    // Crea una copia del contenido y elimina el bloque
-    const newContent = selectedNote.content.filter((_, index) => index !== blockIndexToDelete);
-
-    const updatedNote = {
-      ...selectedNote,
-      content: newContent
-    };
-
-    // Actualiza en la base de datos y en el store global
-    updateItemInCollection('notes', noteId, updatedNote);
-    setSelectedNote(updatedNote);
-    useGlobalStore.setState({notes: [...getCollection<Note[]>('notes')], })
-
-  };
-
-
   return (
     <div className='col-span-10 w-full min-h-auto' onKeyDown={(event) => (event.altKey && event.key === 'Enter' && handleAltEnter() && setCode(''))}>
-      <section id="editorHeader" className='  align-baseline p-4 border-b-2 border-gray-900'>
-        <h1 className='text-xl'><span id='icon'>📃</span>{currentNote?.title}</h1>
-        <small className='text-gray-500'>(editando)</small>
-      </section>
+      <section id="editorHeader" className='flex gap-4 align-baseline justify-between p-4 border-b-2 border-gray-900'>
+        <div id="title" className='flex gap-2'>
+          <button className='text-gray-500 font-bold hover:bg-gray-700 px-2 rounded-sm'
+            onClick={(e: React.MouseEvent<HTMLButtonElement>) => handleCloseEditor(e)}
+          >&lt;</button>
+          <h1 className='text-xl'><span id='icon'>📃</span>{currentNote?.title}</h1>
+          <small className='text-gray-500'>(editando)</small>
+        </div>
 
+        <div id="options" className='px-10'>
+          <button className='text-gray-500 font-bold hover:text-gray-300'
+            onClick={() => useGlobalStore.setState({isMetadataBlockVisible: !useGlobalStore.getState().isMetadataBlockVisible })}>Editar metadatos</button>
+
+        </div>
+      </section>
+      <section id="editorActions" className=''>
+        <AnimatePresence>  
+          {useGlobalStore.getState().isMetadataBlockVisible ? <MetadataBlock noteDetails={currentNote?.details}
+          />: null}
+        </AnimatePresence>
+
+      </section>
       <section id="editor" className='p-8'>
         {
-          content.map((item, index) => {
+          content?.map((item, index) => {
             if (item.type === 'markdown') {
-              return <MarkdownRendered onDelete={handleDeleteBlock} key={index} id={index} children={item.content} />
+              return <MarkdownRendered setMouseElementId={setMouseElementId} 
+                      onContextClick={contextClickOverride} 
+                      onDelete={handleDeleteBlock} 
+                      key={index} 
+                      id={index} 
+                      children={item.content} />
             }
             return null;
           })
@@ -139,7 +370,14 @@ function Editor() {
         <EditorBlock 
           setCode={setCode}
           code={code}
+          currentNote={currentNote?.details}
         /> 
+      </section>
+
+      <section id="context">
+        <RenderedCellContextMenu ref={contextMenuRef}>
+          <ContextMenuButton style='primary' onClick={() => {handleCopyToClipboard()}}> Copiar </ContextMenuButton>
+        </RenderedCellContextMenu>
       </section>
     </div>
   )

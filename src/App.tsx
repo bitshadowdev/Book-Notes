@@ -5,7 +5,9 @@ import Sidebar from "./components/Sidebar";
 import useGlobalStore from "./stores/globalStore";
 import Editor from "./components/Editor";
 import YourNotes from "./components/YourNotes";
-import { handleAddNewNoteSubmit, handleDeleteNote, handleNewNoteEdit, handleOpenEditor, useInitApplication } from "./lib";
+import { handleAddNewNoteSubmit, handleDeleteNote, handleNewNoteEdit, handleOpenEditor } from "./lib";
+import BookDetails from "./components/BookDetails";
+import { useInitApplication } from "./hooks";
 
 function App() {
 
@@ -14,19 +16,11 @@ function App() {
     openModal,
     isOnEditMode,
     areNotes, 
-    notes
+    notes,
+    currentNote,
+    onEditNote
   } = useInitApplication()
 
-  // Set context menu visibility to false if a left click on document is registerd 
-  document.addEventListener('click', () => {
-    useGlobalStore.setState({ contextMenuVisibility: false })
-    const menu = document.getElementById('context-menu')
-    if (menu) {menu.style.top = '0';menu.style.left = '0'};
-  })
-
-  const onEditNote = () => {
-    useGlobalStore.setState({ createNoteModalOpen: true, newNoteModalEditMode: true })
-  }
 
 
   return (
@@ -36,7 +30,10 @@ function App() {
         <div className="grid grid-cols-12 h-[90vh]">
           {/* Sidebar */}
           <Sidebar>
-            <Sidebar.Button onClick={openModal}>+ Add Note</Sidebar.Button>
+            
+            {isOnEditMode ? <BookDetails currentNote={currentNote} /> : <Sidebar.Button onClick={openModal}>+ Add Note</Sidebar.Button>}
+
+
           </Sidebar>
           {/* End Sidebar */} 
 

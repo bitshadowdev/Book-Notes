@@ -110,11 +110,16 @@ body {
 }
 
 #editor th, td {
-  border: 1px solid #ccc; /* Borde para las celdas */
+  border: 1px solid #111; /* Borde para las celdas */
   padding: 8px; /* Espaciado interno */
   text-align: left; /* Alineación del texto */
 }
 
 #editor th {
-  background-color: #f2f2f2; /* Color de fondo para las cabeceras */
+  background-color: #111; /* Color de fondo para las cabeceras */
+  border: 2px solid #333;
+}
+
+#editor img {
+  width: 500px;
 }

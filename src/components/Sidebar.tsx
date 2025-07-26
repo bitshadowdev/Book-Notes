@@ -5,8 +5,6 @@ type ButtonProps = {
   onClick: () => void;
 }
 
-
-
 function Button({ children, onClick }: ButtonProps) {
   return (
     <button data-testId="sidebar-button" onClick={onClick} id="addNote" className="border-2 border-blue-600 bg-blue-600 p-2 w-full rounded-md hover:bg-blue-700 hover:text-white hover:border-blue-700">{ children } </button>

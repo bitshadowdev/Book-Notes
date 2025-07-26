@@ -72,6 +72,7 @@ type useMarkdownRendererReturn = {
 type  NoNotesProps = {
   mainLine: string;
   seccondLine: string;
+  icon?: React.ReactNode | undefined;
 }
 
 type NoNotesContainerProps = {

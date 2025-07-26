@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { type YourNotesProps } from '../types'
+import type { YourNotesProps } from '../types'
 import ContextMenu, { ContextMenuButton } from './ContextMenu';
 import { makeContextDriver } from '../lib';
 import { motion } from 'framer-motion';
@@ -42,25 +42,28 @@ function YourNotes({ notes, onEditNote, onDeleteNote, onOpenEditor }: YourNotesP
         variants={containerVariants}
         initial="hidden"
         animate="visible"
+        data-testid="main-motion"
       >
         {notes.map((note, index) => (
           <motion.article 
             key={`note-${index}`} 
-            id="note"
-            data-testid={`note-${index}`}
+            id={index.toString()}
             className='group hover:cursor-pointer'
             onContextMenu={onContextClick}
-            data-testId={index}
+            data-testid={`note-${index}-article`}
             onClick={() => onOpenEditor(index)}
             variants={itemVariants}
           >
-            <header data-testId={index}>
-              <figure className='mb-2' data-testId={index} >
-                <img data-testId={index} className='p-2 border-2 border-gray-200 w-[150px] h-[200px] ' src={note.image ?
+            <header id={index.toString()} data-testid={`note-${index}`}>
+              <figure id={index.toString()} className='mb-2' data-testid={`note-${index}`} >
+                <img id={index.toString()} data-testId={index} className='p-2 border-2 border-gray-200 w-[150px] h-[200px] ' src={note.image ?
                   note.image instanceof ArrayBuffer ? URL.createObjectURL(new Blob([note.image])) :
-                  note.image : ''} alt={`${note.title} Book Image`} />
+                  note.image : ''} alt={`${note.title} Book Image`}
+                  data-testid={`note-${index}`}
+                  />
+              
               </figure>
-              <h1 data-testId={index} className='text-xl bold group-hover:text-blue-300'>{note.title}</h1>
+              <h1 id={index.toString()} data-testId={index} className='text-xl bold group-hover:text-blue-300'>{note.title}</h1>
             </header>
           </motion.article>
         ))}

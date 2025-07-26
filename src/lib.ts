@@ -6,7 +6,7 @@ import useGlobalStore from "./stores/globalStore";
 
 export const handleAddNewNoteSubmit: SubmitHandler<ModalNewNoteInputs> = async (data, event) => {
     event?.preventDefault();
-    
+
     const note: Note = {
       title: data.bookTitle,
       description: data.bookDescription,
@@ -21,7 +21,7 @@ export const handleAddNewNoteSubmit: SubmitHandler<ModalNewNoteInputs> = async (
         pageNumber: '',
       }
     };
-    
+
     if (!existCollection('notes')) createCollection('notes');
     appendItemToCollection('notes', note);
     
@@ -36,7 +36,7 @@ export const handleAddNewNoteSubmit: SubmitHandler<ModalNewNoteInputs> = async (
 export const handleNewNoteEdit: SubmitHandler<ModalNewNoteInputs> = async (data: ModalNewNoteInputs) => {
   const editingdNoteId = useGlobalStore.getState().editingdNoteId;
   const selectedNote = useGlobalStore.getState().notes[editingdNoteId];
-  
+  console.log(data)
   // Check if is an image
   let image = undefined;
   if (data.bookImage.length > 0) {
@@ -119,14 +119,12 @@ export const makeContextDriver = (contextMenuRef: React.RefObject<HTMLDivElement
           ctxMenuElement.style.visibility = 'visible';
       });
 
-      const editingNoteId = document.elementFromPoint(clickX, clickY)?.getAttribute('data-testid');
+      const editingNoteId = document.elementFromPoint(clickX, clickY)?.getAttribute('id');
       if (editingNoteId) {
         useGlobalStore.setState({ editingdNoteId: Number(editingNoteId) });
       }
     };
   }
-   
-
 }
 
 export function truncateWords(text: string, maxWords: number): string {

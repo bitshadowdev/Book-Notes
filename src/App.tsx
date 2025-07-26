@@ -30,10 +30,7 @@ function App() {
         <div className="grid grid-cols-12 h-[90vh]">
           {/* Sidebar */}
           <Sidebar>
-            
             {isOnEditMode ? <BookDetails currentNote={currentNote} /> : <Sidebar.Button onClick={openModal}>+ Add Note</Sidebar.Button>}
-
-
           </Sidebar>
           {/* End Sidebar */} 
 

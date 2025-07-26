@@ -6,6 +6,14 @@ import { markdown, markdownLanguage } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
 import { makeContextDriver } from "./lib";
 
+export const openModal = () => {
+    useGlobalStore.setState({ createNoteModalOpen: true });
+}
+
+export const onEditNote = () => {
+  useGlobalStore.setState({ createNoteModalOpen: true, newNoteModalEditMode: true })
+}
+
 export const useInitApplication = () => {
   // Fetch notes
   useEffect(() => {
@@ -16,10 +24,6 @@ export const useInitApplication = () => {
 
 
   const isNewNoteModalOpen = useGlobalStore((state) => state.createNoteModalOpen);
-
-  const openModal = () => {
-    useGlobalStore.setState({ createNoteModalOpen: true });
-  }
 
   const isOnEditMode = useGlobalStore((state) => state.isOnEditMode);
 
@@ -37,11 +41,6 @@ export const useInitApplication = () => {
     const menu = document.getElementById('context-menu')
     if (menu) {menu.style.top = '0';menu.style.left = '0'};
   })
-
-  const onEditNote = () => {
-    useGlobalStore.setState({ createNoteModalOpen: true, newNoteModalEditMode: true })
-  }
-
 
   return {
     isNewNoteModalOpen,

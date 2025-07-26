@@ -1,7 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {fireEvent, render, screen} from '@testing-library/react';
 import NewNoteModal, { ModalHeader } from './NewNoteModal'
-import { mockNote } from '../assets/testing.mocks';
 
 const setterMock = vi.fn()
 vi.mock('../stores/globalStore', () => (

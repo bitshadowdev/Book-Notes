@@ -29,7 +29,10 @@ const useGlobalStore = create<GlobalState>((set) => ({
   isOnEditMode: false,
   setIsOnEditMode: (isOpen) => set({ isOnEditMode: isOpen }),
   notes: [],
-  setNotes: (notes) => set({ notes }),
+  setNotes: (notes) => {
+    notes = notes.filter(v => Object.keys(v).length !== 0);
+    set({ notes });
+  },
   selectedNote: null,
   setSelectedNote: (note) => set({ selectedNote: note }),
   contextMenuVisibility: false,

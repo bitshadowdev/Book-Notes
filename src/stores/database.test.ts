@@ -52,7 +52,7 @@ describe("Testing localstorage functions", () => {
 
   it("Deleting an item from the collection", () => {
     configureLocalStorage();
-    let collection = db.getCollection('notes')
+    let collection = db.getCollection<Note[]>('notes')
   
     expect([...collection].length).toBe(2)
     db.deleteItemInCollection("notes", 1);

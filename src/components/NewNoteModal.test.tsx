@@ -5,7 +5,7 @@ import NewNoteModal, { ModalHeader } from './NewNoteModal'
 const setterMock = vi.fn()
 vi.mock('../stores/globalStore', () => (
   {
-    'default': (state) => setterMock
+    'default': () => setterMock
   }
 ));
 

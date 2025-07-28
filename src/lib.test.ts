@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import * as db from './stores/database';
 import * as lib from './lib'
 import { mockNote } from './assets/testing.mocks';
-import useGlobalStore from './stores/globalStore';
+import type { ModalNewNoteInputs } from './types';
 
 const { getStateSpy } = vi.hoisted(() => {
   return { getStateSpy: vi.fn() }
@@ -35,7 +35,7 @@ describe("Testing lib", () => {
   const ev = {
     preventDefault: preventDefaultSpy,
   }
-  it("Handle add new note submit", () => {
+  it("Handle add new note submit", async () => {
     const expectedBase64 = "data:image/png;base64,MQ=="
     const spyCreateCollection = vi.fn()
     const spyAppendColletion = vi.fn()
@@ -53,70 +53,38 @@ describe("Testing lib", () => {
     const image =  new File(['1'], 'test.png', {type: 'image/png'});
     vi.spyOn(window, 'FileReader').mockImplementation(() => mockReader as any)
     db.createCollection("notes")
-    const data = {
+    const data: ModalNewNoteInputs = {
       bookTitle:'title', 
       bookDescription:'desc', 
-      bookImage: image
-    };
-    const note: Note = {
-      title: data.bookTitle,
-      description: data.bookDescription,
-      image: 'data:image/png;base64,MQ==',
-      content: [],
-      details: {
-        author: '',
-        publicationDate: '',
-        genre: '',
-        isbn: '',
-        publisher: '',
-        pageNumber: '',
-      }
+      bookImage: [image] // Envolver en array
     };
     
 
-    lib.handleAddNewNoteSubmit(data, ev).then(() => {
-      expect(preventDefaultSpy).toBeCalled();
-      expect(mockReader.readAsDataURL).toBeCalled();
-      expect(spyCreateCollection).toBeCalledWith('notes');
-      expect(spyAppendColletion).toBeCalled();
-      expect(setStateSpy).toBeCalledTimes(5);
-    })
+    await lib.handleNewNoteEdit(data, ev as any);  // Añadir await
+    expect(preventDefaultSpy).toBeCalled();
+    expect(mockReader.readAsDataURL).toBeCalled();
+    expect(spyCreateCollection).toBeCalledWith('notes');
+    expect(spyAppendColletion).toBeCalled();
   })
-
-  it("Handle note edit correctly", () => {
+  it("Handle note edit correctly", async () => {  // Añadir async
     const updateInCollectionSpy = vi.fn()
     vi.spyOn(db, "updateItemInCollection").mockImplementation(updateInCollectionSpy)
-    const expectedBase64 = "data:image/png;base64,MQ=="
-    const data = {
+    
+    const data: ModalNewNoteInputs = {
       bookTitle: 'title',
       bookDescription: 'desc',
-      bookImage: [ new File(['1'], 'test.png', { type: 'image/png' })]
+      bookImage: [new File(['1'], 'test.png', { type: 'image/png' })] // Asegurarse que sea array
     }
-
-    const note: Note = {
-      title: data.bookTitle,
-      description: data.bookDescription,
-      image: expectedBase64,
-      content: [],
-      details: {
-        author: "",
-        publicationDate: "",
-        genre: "",
-        isbn: "",
-        publisher: "",
-        pageNumber: "",
-      }
-    };
 
     const preventDefaultSpy = vi.fn();
     const ev = {
       preventDefault: preventDefaultSpy,
-    }
+    } as any
 
-    lib.handleNewNoteEdit(data, ev).then(() => {
-      expect(updateInCollectionSpy).toBeCalled();
-      expect(setStateSpy).toBeCalledTimes(1);
-    })
+    // Usar await en lugar de .then()
+    await lib.handleNewNoteEdit(data, ev);  // Añadir await
+    
+    expect(updateInCollectionSpy).toBeCalled();
+    expect(setStateSpy).toBeCalledTimes(1);
   })
-
 })

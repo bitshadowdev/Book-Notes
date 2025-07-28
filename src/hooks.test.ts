@@ -65,7 +65,7 @@ describe('Testing if hooks are loaded in the correct manner', () => {
     act(() => {
       result.current.setEditingMode();
 
-      result.current.handleEnterEdition({altKey: true, key: "Enter"});
+      result.current.handleEnterEdition({altKey: true, key: "Enter"} as any);
     })
     
     expect(result.current.grouphHovered).toStrictEqual({'visibility': 'hidden'});

@@ -23,7 +23,7 @@ export type Note = {
 
 export type ModalNewNoteInputs = {
   bookTitle: string,
-  bookImage: FileList,
+  bookImage: FileList | File[],
   bookDescription: string
 }
 
@@ -44,7 +44,7 @@ type useEditorReturn = {
   content: CodeBlock[] | undefined; 
   code: string;
   setCode: React.Dispatch<React.SetStateAction<string>>;
-  handleAltEnter: (event: React.KeyboardEvent) => true | undefined;
+  handleAltEnter: (event: React.KeyboardEvent) => true | undefined | void;
   handleDeleteBlock: (blockIndexToDelete: number) => void;
   contextMenuRef: React.Ref<HTMLElement | null>;
   onContextClick: (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => void;

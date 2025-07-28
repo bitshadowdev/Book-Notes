@@ -1,6 +1,6 @@
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 import {fireEvent, render, screen} from '@testing-library/react';
-import Editor, { MarkdownRendered, MarkdownBlock, EditableTD, EditorActions } from './Editor';
+import Editor, { MarkdownRendered, MarkdownBlock, EditableTD } from './Editor';
 import * as hooks from '../hooks';
 import * as lib from '../lib';
 import { mockNote } from '../assets/testing.mocks';

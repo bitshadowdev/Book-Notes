@@ -35,7 +35,9 @@ export const useInitApplication = () => {
 
   const isOnEditMode = useGlobalStore((state) => state.isOnEditMode);
 
-  const notes = useGlobalStore((state) => state.notes);
+  let notes = useGlobalStore((state) => state.notes);
+  console.log(notes)
+  if (Object.keys(notes).length > 0) notes = notes.filter(v => Object.keys(v).length !== 0);
 
   const editingNoteId = useGlobalStore((state) => state.editingdNoteId);
   const currentNote = useGlobalStore((state) => state.notes[editingNoteId]);
@@ -200,7 +202,9 @@ export const useEditor = (): useEditorReturn => {
     if (editorSelection.length > 0) {
       let contentToCopy = '';
       editorSelection.forEach((id) => {
-        const block = content[id];
+        let block = undefined;
+        if (content) block = content[id];
+        else return;
         if (block && block.type === 'markdown') {
           contentToCopy += block.content + '\n\n';
         }

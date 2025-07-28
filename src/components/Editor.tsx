@@ -8,16 +8,17 @@ import { gruvboxDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import remarkGfm from 'remark-gfm';
 import { handleCloseEditor,  } from '../lib';
 import { useEditableTD, useEditor, useMarkdownRenderer } from '../hooks';
-import ContextMenu, { ContextMenuButton } from './ContextMenu';
 import type { Note, NoteDetails } from '../types';
 import useGlobalStore from '../stores/globalStore';
 import { getCollection, updateItemInCollection } from '../stores/database';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { PropsWithChildren } from 'react';
 
 
 type EditorBlockProps = {
   setCode: (value: string) => void;
   code: string;
+  currentNote?: NoteDetails;
 }
 
 type MarkdownRederedProps = {
@@ -48,13 +49,13 @@ export function MarkdownRendered({ id, children, onDelete, onContextClick, setMo
         { (!isOnEditing)?  <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
-            code({ node, inline, className, children, ...props }) {
+            code({ className, children, ref, node, ...props }) {
               const match = /language-(\w+)/.exec(className || '');
-              return !inline && match ? (
+              return  match ? (
                 <Highlighter
                   language={match[1]}
                   PreTag="div" // O el tag que prefieras
-                  style={gruvboxDark}
+                  style={gruvboxDark as any}
                   {...props}
                 >
                   {String(children).replace(/\n$/, '')}
@@ -81,7 +82,7 @@ export function MarkdownRendered({ id, children, onDelete, onContextClick, setMo
       </div>}
       </div>
       
-      <div id="blockActions" style={grouphHovered} className='w-full flex justify-end pt-4'>
+      <div id="blockActions" style={grouphHovered as any} className='w-full flex justify-end pt-4'>
         <button data-testid="delete-button" onClick={() => onDelete(id)} className='rounded-sm text-gray-400 hover:text-red-400 text-xs mr-2' title="Borrar">Borrar</button>
         |
         <button data-testid="edit-button" onClick={() => setEditingMode()} className='rounded-sm text-gray-400 hover:text-blue-400 text-xs ml-2' title="Editar">Editar</button>
@@ -162,7 +163,7 @@ export function EditableTD({ children, setter }: PropsWithChildren<{ setter: (va
    </>
     
   )}
-function MetadataBlock({ noteDetails }: { noteDetails: NoteDetails | undefined, visible: boolean, setVisible: (state: boolean) => void }) {
+function MetadataBlock({ noteDetails }: { noteDetails: NoteDetails | undefined, visible?: boolean, setVisible?: (state: boolean) => void }) {
   const makeSetter = (key: keyof NoteDetails) => (value: string) => {
     /* Update current note */
     const currentNote = useGlobalStore.getState().selectedNote;
@@ -203,40 +204,40 @@ function MetadataBlock({ noteDetails }: { noteDetails: NoteDetails | undefined, 
             <tr>
               <td>Fecha de publicación</td>
               <td>
-                <EditableTD setter={(value) => makeSetter('publicationDate')(value)}>
-                  {noteDetails.publicationDate}
+                <EditableTD setter={(value: string) => makeSetter('publicationDate')(value)}>
+                  {noteDetails ? noteDetails.publicationDate : ''}
                 </EditableTD>
               </td>
             </tr>
             <tr>
               <td>Género</td>
               <td>
-                <EditableTD setter={(value) => makeSetter('genre')(value)}>
-                  {noteDetails.genre}
+                <EditableTD setter={(value: string) => makeSetter('genre')(value)}>
+                  {noteDetails ? noteDetails.genre : ''}
                 </EditableTD>
               </td>
             </tr>
             <tr>
               <td>ISBN</td>
               <td>
-                <EditableTD setter={(value) => makeSetter('isbn')(value)}>
-                  {noteDetails.isbn}
+                <EditableTD setter={(value: string) => makeSetter('isbn')(value)}>
+                  {noteDetails ? noteDetails.isbn:''}
                 </EditableTD>
               </td>
             </tr>
             <tr>
               <td>Editorial</td>
               <td>
-                <EditableTD setter={(value) => makeSetter('publisher')(value)}>
-                  {noteDetails.publisher}
+                <EditableTD setter={(value: string) => makeSetter('publisher')(value)}>
+                  {noteDetails ? noteDetails.publisher : ''}
                 </EditableTD>
               </td>
             </tr>
             <tr>
               <td>Número de páginas</td>
               <td>
-                <EditableTD setter={(value) => makeSetter('pageNumber')(value)}>
-                  {noteDetails.pageNumber}
+                <EditableTD setter={(value: string) => makeSetter('pageNumber')(value)}>
+                  {noteDetails ? noteDetails.pageNumber : ''}
                 </EditableTD>
               </td>
             </tr>
@@ -278,22 +279,22 @@ function EditorBlock( { code, setCode }: EditorBlockProps ) {
   )
 }
 
-type CellContextProps = {
+/*type CellContextProps = {
   ref: React.RefObject<HTMLElement | null>;
-}
+}*/
 
-function RenderedCellContextMenu({ref, children}: PropsWithChildren<CellContextProps>) {
+/*function RenderedCellContextMenu({ref, children}: PropsWithChildren<CellContextProps>) {
   return (
     <ContextMenu ref={ref}>
       {children}
     </ContextMenu>
   )
-}
+}*/
 
 type EditorHeader = {
   editMetadata: () => void;
   handleCloseEditor: (e: React.MouseEvent<HTMLElement>) => void;
-  currentNote: Note | nulll;
+  currentNote: Note | null;
 }
 
 function EditorHeader({editMetadata, handleCloseEditor, currentNote}: EditorHeader ) {
@@ -318,7 +319,7 @@ function EditorHeader({editMetadata, handleCloseEditor, currentNote}: EditorHead
   );
 }
 
-function EditorActions({ currentNote }: {currentNote: Note | undefined | null }) {
+export function EditorActions({ currentNote }: {currentNote: Note | undefined | null }) {
   return (
     <section data-testid="editor-actions" id="editorActions" className=''>
       {useGlobalStore.getState().isMetadataBlockVisible}
@@ -338,10 +339,8 @@ function Editor() {
     setCode,
     handleAltEnter,
     handleDeleteBlock,
-    contextMenuRef,
     setMouseElementId,
     contextClickOverride,
-    handleCopyToClipboard,
     editMetadata
   } = useEditor();
 

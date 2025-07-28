@@ -4,7 +4,8 @@ import type { Note } from "../types";
 
 export default function BookDetails({ currentNote }: { currentNote: Note }) {
   if (currentNote === undefined) {
-    const currentNote = useGlobalStore.getState().selectedNote;
+    const note = useGlobalStore.getState().selectedNote;
+    if (note) currentNote = note;
   }
   return (
     <section

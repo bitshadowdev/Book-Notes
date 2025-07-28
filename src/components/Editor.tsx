@@ -374,12 +374,6 @@ function Editor() {
           currentNote={currentNote?.details}
         /> 
       </section>
-
-      <section id="context">
-        <RenderedCellContextMenu ref={contextMenuRef}>
-          <ContextMenuButton style='primary' onClick={() => {handleCopyToClipboard()}}> Copiar </ContextMenuButton>
-        </RenderedCellContextMenu>
-      </section>
     </div>
   )
 }

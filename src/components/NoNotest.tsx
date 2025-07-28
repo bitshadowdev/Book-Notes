@@ -24,7 +24,7 @@ function NoNotesSubHeader({ children }: { children: React.ReactNode }) {
 
 function NoNotesContainer({ children, icon }: NoNotesContainerProps) {
   return (
-    <div data-testid="no-notes-container" className="text-center col-span-10 w-full h-full flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-950 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+    <div data-testid="no-notes-container" className="text-center col-span-10 w-full h-full items-center justify-center p-8 bg-gray-50 dark:bg-gray-950 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         {icon ? icon : <DefaultIcon />}
         { children }
     </div>

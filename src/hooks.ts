@@ -14,6 +14,14 @@ export const onEditNote = () => {
   useGlobalStore.setState({ createNoteModalOpen: true, newNoteModalEditMode: true })
 }
 
+const handleEsc = (ev: React.KeyboardEvent) => {
+  if (ev.key==="Escape") {
+    useGlobalStore.setState({
+      createNoteModalOpen: false,
+    })
+  }
+}
+
 export const useInitApplication = () => {
   // Fetch notes
   useEffect(() => {
@@ -49,7 +57,8 @@ export const useInitApplication = () => {
     areNotes,
     notes,
     currentNote,
-    onEditNote
+    onEditNote,
+    handleEsc
   }
 }
 

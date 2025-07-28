@@ -1,8 +1,11 @@
 import { truncateWords } from "../lib";
+import useGlobalStore from "../stores/globalStore";
 import type { Note } from "../types";
 
 export default function BookDetails({ currentNote }: { currentNote: Note }) {
-  
+  if (currentNote === undefined) {
+    const currentNote = useGlobalStore.getState().selectedNote;
+  }
   return (
     <section
       id="bookDetails"

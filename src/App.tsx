@@ -18,14 +18,13 @@ function App() {
     areNotes, 
     notes,
     currentNote,
-    onEditNote
+    onEditNote,
+    handleEsc
   } = useInitApplication()
-
-
 
   return (
     <>
-      <main id="mainframe" className=" h-full">
+      <main id="mainframe" className=" h-full" onKeyDown={handleEsc}>
         <Header>Note Taker</Header>
         <div className="grid grid-cols-12 h-[90vh]">
           {/* Sidebar */}

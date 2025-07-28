@@ -25,11 +25,11 @@ function App() {
   return (
     <>
       <main id="mainframe" className=" h-full" onKeyDown={handleEsc}>
-        <Header>Note Taker</Header>
+        <Header>Book Noter</Header>
         <div className="grid grid-cols-12 h-[90vh]">
           {/* Sidebar */}
           <Sidebar>
-            {isOnEditMode ? <BookDetails currentNote={currentNote} /> : <Sidebar.Button onClick={openModal}>+ Add Note</Sidebar.Button>}
+            {isOnEditMode ? <BookDetails currentNote={currentNote} /> : <Sidebar.Button onClick={openModal}>+ Añadir nota</Sidebar.Button>}
           </Sidebar>
           {/* End Sidebar */} 
 
